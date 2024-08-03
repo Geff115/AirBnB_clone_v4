@@ -86,3 +86,67 @@ class TestFileStorage(unittest.TestCase):
     @unittest.skipIf(models.storage_t != 'db', "not testing db storage")
     def test_save(self):
         """Test that save properly saves objects to file.json"""
+
+
+class TestDBStorage(unittest.TestCase):
+    """Testing the methods in the DBStorage"""
+
+    @unittest.skipIf(models.storage_t != 'db', "not testing db storage")
+    def setUp(self):
+        """Setting up the test environment"""
+        self.storage = DBStorage()
+        self.obj = BaseModel()
+        self.obj.id = "1234"
+        self.storage.new(self.obj)
+        self.storage.save()
+
+        # Create another object with a different Id to test non existent
+        self.nonexistent_obj = BaseModel()
+        self.nonexistent_obj.id = "5678"
+
+    @unittest.skipIf(models.storage_t != 'db', "not testing db storage")
+    def tearDown(self):
+        """Clean up if necessary"""
+        pass
+
+    @unittest.skipIf(models.storage_t != 'db', "not testing db storage")
+    def test_get_existing_object(self):
+        """Testing the get method"""
+        result = self.storage.get(BaseModel, "1234")
+        self.assertIsNotNone(result)
+        self.assertEqual(result.id, "1234")
+        self.assertIsInstance(result, BaseModel)
+
+    @unittest.skipIf(models.storage_t != 'db', "not testing db storage")
+    def test_get_nonexistent_object(self):
+        """Testing for non existing IDs"""
+        result = self.storage.get(BaseModel, "5678")
+        self.assertIsNone(result)
+
+    @unittest.skipIf(models.storage_t != 'db', "not testing db storage")
+    def test_count_all_objects(self):
+        """Test for counting all objects in storage"""
+        count = self.storage.count()
+        self.assertEqual(count, len(self.obj.all()))
+
+    @unittest.skipIf(models.storage_t != 'db', "not testing db storage")
+    def test_count_specific_class(self):
+        """Test to count objects of a specific class"""
+        model = BaseModel()
+        model.id = "5678"
+        self.storage.new(model)
+        self.storage.save()
+
+        count = self.storage.count(BaseModel)
+        self.assertEqual(count, 1)
+
+    @unittest.skipIf(models.storage_t != 'db', "not testing db storage")
+    def test_count_empty_class(self):
+        """Test counting objects of an empty class"""
+        empty_class = Empty_class()
+        count = self.storage.count(empty_class)
+        self.assertEqual(count, 0)
+
+
+if __name__ == "__main__":
+    unittest.main()
